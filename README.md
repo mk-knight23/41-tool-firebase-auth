@@ -1,6 +1,17 @@
-# SecureAuth - Enterprise-Grade Authentication
+# SecureAuth — Firebase Authentication
 
 A professional, trustworthy authentication interface built with React and Firebase. Featuring enterprise-grade security UI, clean form validation, and a minimal focused design that conveys trust and reliability.
+
+## Recent Upgrades (v2.2.0)
+
+### Iteration 1-5: Complete Portfolio Upgrade
+- Added "Made by MK — Musharraf Kazi" branding
+- Updated documentation structure
+- Enhanced security feature descriptions
+- Documented accessibility features
+- Verified build successful
+
+---
 
 ## Professional/Serious Theme
 

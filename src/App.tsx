@@ -1,16 +1,30 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, Lock, Mail, Github, LogIn, UserPlus, Fingerprint, ArrowRight, X, ChevronRight, LayoutDashboard, Settings, LogOut, User } from 'lucide-react';
+import { Shield, Lock, Mail, Github, LogIn, UserPlus, Fingerprint, ArrowRight, X, ChevronRight, LayoutDashboard, Settings, LogOut, User, Eye, EyeOff, Check } from 'lucide-react';
 
 function App() {
     const [view, setView] = useState<'login' | 'signup' | 'dashboard'>('login');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [rememberMe, setRememberMe] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+
+    const passwordStrength = useMemo(() => {
+        if (password.length === 0) return 0;
+        let score = 0;
+        if (password.length >= 8) score++;
+        if (/[A-Z]/.test(password)) score++;
+        if (/[0-9]/.test(password)) score++;
+        if (/[^A-Za-z0-9]/.test(password)) score++;
+        return score;
+    }, [password]);
+
+    const strengthLabels = ['Weak', 'Fair', 'Good', 'Strong', 'Secure'];
+    const strengthColors = ['bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-green-500', 'bg-emerald-500'];
 
     const handleAuth = (e: React.FormEvent) => {
         e.preventDefault();
-        // In a real app, this would use the firebase context
-        console.log('Auth attempt:', { email, password });
+        console.log('Auth attempt:', { email, password, rememberMe });
         setView('dashboard');
     };
 
@@ -111,13 +125,51 @@ function App() {
                                     <div className="relative">
                                         <Fingerprint className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
                                         <input
-                                            type="password"
-                                            className="input-field pl-16"
+                                            type={showPassword ? 'text' : 'password'}
+                                            className="input-field pl-16 pr-12"
                                             placeholder="••••••••"
                                             value={password}
                                             onChange={(e) => setPassword(e.target.value)}
                                         />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors"
+                                        >
+                                            {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                        </button>
                                     </div>
+                                    {/* Password Strength Meter */}
+                                    {password.length > 0 && (
+                                        <div className="mt-3 space-y-2">
+                                            <div className="flex gap-1 h-1">
+                                                {[0, 1, 2, 3].map((i) => (
+                                                    <div
+                                                        key={i}
+                                                        className={`flex-1 rounded-full transition-all ${i < passwordStrength ? strengthColors[passwordStrength - 1] : 'bg-white/10'}`}
+                                                    />
+                                                ))}
+                                            </div>
+                                            <div className="flex items-center justify-between text-xs">
+                                                <span className="text-slate-500">Strength:</span>
+                                                <span className={`font-bold ${passwordStrength > 2 ? 'text-green-500' : 'text-orange-500'}`}>
+                                                    {strengthLabels[passwordStrength]}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Remember Me */}
+                                <div className="flex items-center gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => setRememberMe(!rememberMe)}
+                                        className={`w-5 h-5 rounded border transition-all flex items-center justify-center ${rememberMe ? 'bg-blue-600 border-blue-600' : 'border-slate-600 hover:border-slate-400'}`}
+                                    >
+                                        {rememberMe && <Check className="w-3 h-3 text-white" />}
+                                    </button>
+                                    <span className="text-sm text-slate-400">Remember this device</span>
                                 </div>
 
                                 <button className="w-full py-5 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-2xl transition-all shadow-xl shadow-blue-600/20 flex items-center justify-center gap-3 group active:scale-95">
