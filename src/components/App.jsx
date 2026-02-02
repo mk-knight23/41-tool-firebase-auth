@@ -323,6 +323,7 @@ function App() {
 
       {/* Footer */}
       <footer className="text-center py-6 text-xs text-slate-500">
+        <p className="text-blue-400 font-bold uppercase tracking-[0.3em] mb-2">Made by MK — Musharraf Kazi</p>
         <p>© 2026 SecureAuth. All rights reserved.</p>
         <p className="mt-1">Enterprise-grade authentication powered by Firebase</p>
       </footer>
