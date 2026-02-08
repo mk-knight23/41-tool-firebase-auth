@@ -4,7 +4,7 @@ import { getAnalytics } from "firebase/analytics";
 import { getFirestore } from "firebase/firestore";
 import { getPerformance } from "firebase/performance";
 
-const firebaseConfig = {
+const firebaseConfig: Record<string, string | undefined> = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
   databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL,
@@ -33,17 +33,17 @@ export const auth = getAuth(app);
 export const db = getFirestore(app);
 
 // Initialize Analytics (only in browser)
-export let analytics = null;
+export let analytics: any = null;
 if (typeof window !== 'undefined' && import.meta.env.VITE_FIREBASE_MEASUREMENT_ID) {
   analytics = getAnalytics(app);
 }
 
 // Initialize Performance Monitoring
-export let perf = null;
+export let perf: any = null;
 if (typeof window !== 'undefined') {
   try {
     perf = getPerformance(app);
-  } catch (error) {
+  } catch (error: any) {
     console.warn('Performance monitoring not available:', error.message);
   }
 }

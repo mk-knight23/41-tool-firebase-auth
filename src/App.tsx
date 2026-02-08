@@ -1,13 +1,21 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, Lock, Mail, Github, LogIn, UserPlus, Fingerprint, ArrowRight, X, ChevronRight, LayoutDashboard, Settings, LogOut, User, Eye, EyeOff, Check } from 'lucide-react';
+import {
+    Shield, Lock, Mail, Github, LogIn, UserPlus, Fingerprint,
+    ArrowRight, X, ChevronRight, LayoutDashboard, Settings,
+    LogOut, User, Eye, EyeOff, Check, AlertCircle
+} from 'lucide-react';
+import { useAuth } from './contexts/AuthContext';
+import { toast } from 'react-hot-toast';
 
 function App() {
-    const [view, setView] = useState<'login' | 'signup' | 'dashboard'>('login');
+    const { currentUser, login, signup, logout, loading } = useAuth();
+    const [view, setView] = useState<'login' | 'signup'>('login');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [rememberMe, setRememberMe] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const passwordStrength = useMemo(() => {
         if (password.length === 0) return 0;
@@ -22,11 +30,48 @@ function App() {
     const strengthLabels = ['Weak', 'Fair', 'Good', 'Strong', 'Secure'];
     const strengthColors = ['bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-green-500', 'bg-emerald-500'];
 
-    const handleAuth = (e: React.FormEvent) => {
+    const handleAuth = async (e: React.FormEvent) => {
         e.preventDefault();
-        console.log('Auth attempt:', { email, password, rememberMe });
-        setView('dashboard');
+
+        if (!email || !password) {
+            toast.error('Please fill in all fields');
+            return;
+        }
+
+        const loadingToast = toast.loading(view === 'login' ? 'Authenticating...' : 'Creating profile...');
+        setIsSubmitting(true);
+
+        try {
+            if (view === 'login') {
+                await login(email, password, rememberMe);
+                toast.success('Access granted', { id: loadingToast });
+            } else {
+                await signup(email, password);
+                toast.success('Protocol established. Please verify your email.', { id: loadingToast });
+            }
+        } catch (error: any) {
+            toast.error(error.message || 'Verification failed', { id: loadingToast });
+        } finally {
+            setIsSubmitting(false);
+        }
     };
+
+    const handleLogout = async () => {
+        try {
+            await logout();
+            toast.success('Session terminated');
+        } catch (error: any) {
+            toast.error('Logout failed');
+        }
+    };
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-[#020617] flex items-center justify-center">
+                <div className="w-12 h-12 border-4 border-blue-600/20 border-t-blue-600 rounded-full animate-spin" />
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-[#020617] text-slate-100 flex items-center justify-center p-6 relative overflow-hidden font-sans">
@@ -35,7 +80,7 @@ function App() {
             <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-purple-600/10 rounded-full blur-[100px] -z-10 -translate-x-1/2 translate-y-1/2" />
 
             <AnimatePresence mode="wait">
-                {view === 'dashboard' ? (
+                {currentUser ? (
                     <motion.div
                         key="dashboard"
                         initial={{ opacity: 0, scale: 0.95 }}
@@ -58,17 +103,16 @@ function App() {
                             </div>
 
                             <button
-                                onClick={() => setView('login')}
+                                onClick={handleLogout}
                                 className="mt-auto flex items-center gap-3 p-4 text-slate-400 hover:text-white transition-colors"
                             >
                                 <LogOut className="w-5 h-5" /> Logout
                             </button>
                         </div>
 
-                        {/* Main Content */}
                         <div className="flex-1 space-y-6 flex flex-col">
                             <div className="glass-card rounded-[3rem] p-12 flex-1">
-                                <h2 className="text-4xl font-black mb-2">Welcome back, <span className="text-blue-500">User</span>!</h2>
+                                <h2 className="text-4xl font-black mb-2">Welcome back, <span className="text-blue-500">{currentUser.displayName || currentUser.email?.split('@')[0]}</span>!</h2>
                                 <p className="text-slate-400 mb-12">Security audit: No anomalies detected in your last session.</p>
 
                                 <div className="grid grid-cols-2 gap-6">
@@ -172,8 +216,19 @@ function App() {
                                     <span className="text-sm text-slate-400">Remember this device</span>
                                 </div>
 
-                                <button className="w-full py-5 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-2xl transition-all shadow-xl shadow-blue-600/20 flex items-center justify-center gap-3 group active:scale-95">
-                                    {view === 'login' ? 'INITIALIZE LOGIN' : 'CREATE PROTOCOL'} <ArrowRight className="group-hover:translate-x-1 transition-transform" />
+                                <button
+                                    type="submit"
+                                    disabled={isSubmitting}
+                                    className="w-full py-5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-600/50 disabled:cursor-not-allowed text-white font-black rounded-2xl transition-all shadow-xl shadow-blue-600/20 flex items-center justify-center gap-3 group active:scale-95"
+                                >
+                                    {isSubmitting ? (
+                                        <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                                    ) : (
+                                        <>
+                                            {view === 'login' ? 'INITIALIZE LOGIN' : 'CREATE PROTOCOL'}
+                                            <ArrowRight className="group-hover:translate-x-1 transition-transform" />
+                                        </>
+                                    )}
                                 </button>
                             </form>
 
